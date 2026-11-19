@@ -46,14 +46,7 @@ public class Conducteur {
     @Getter(AccessLevel.NONE)
     private List<Trajet> trajets = new ArrayList<>();
 
-    // Constructeur métier
-    public Conducteur(
-            String nom,
-            String prenom,
-            String email,
-            String telephone,
-            String numeroPermis) {
-
+    public Conducteur(String nom, String prenom, String email, String telephone, String numeroPermis) {
         this.nom = nom;
         this.prenom = prenom;
         this.email = email;
@@ -61,7 +54,6 @@ public class Conducteur {
         this.numeroPermis = numeroPermis;
     }
 
-    // Accès en lecture seule aux collections
     public List<Vehicule> getVehicules() {
         return Collections.unmodifiableList(vehicules);
     }
@@ -70,17 +62,22 @@ public class Conducteur {
         return Collections.unmodifiableList(trajets);
     }
 
-    public void modifierInformations(
-            String nom,
-            String prenom,
-            String email,
-            String telephone,
-            String numeroPermis) {
-
+    public void modifierInformations(String nom, String prenom, String email, String telephone, String numeroPermis) {
         this.nom = nom;
         this.prenom = prenom;
         this.email = email;
         this.telephone = telephone;
         this.numeroPermis = numeroPermis;
+    }
+
+    public void enregistrerVehicule(Vehicule vehicule) {
+
+        if (vehicule.getConducteur() != this) {
+            throw new IllegalArgumentException("Ce véhicule n'appartient pas à ce conducteur");
+        }
+
+        if (!vehicules.contains(vehicule)) {
+            vehicules.add(vehicule);
+        }
     }
 }

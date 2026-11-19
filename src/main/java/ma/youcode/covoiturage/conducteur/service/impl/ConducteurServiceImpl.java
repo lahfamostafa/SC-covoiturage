@@ -11,9 +11,8 @@ import ma.youcode.covoiturage.conducteur.entity.Conducteur;
 import ma.youcode.covoiturage.conducteur.mapper.ConducteurMapper;
 import ma.youcode.covoiturage.conducteur.repository.ConducteurRepository;
 import ma.youcode.covoiturage.conducteur.service.ConducteurService;
-import ma.youcode.covoiturage.exception.ConducteurNotExistsException;
-import ma.youcode.covoiturage.exception.EmailAlreadyExistsException;
-import ma.youcode.covoiturage.exception.NumeroPermisAlreadyExistsException;
+import ma.youcode.covoiturage.exception.AlreadyExistsException;
+import ma.youcode.covoiturage.exception.ResourceNotFoundException;
 
 @Service
 @Transactional
@@ -44,13 +43,13 @@ public class ConducteurServiceImpl implements ConducteurService {
     public ConducteurResponseDTO creerConducteur(ConducteurRequestDTO request) {
 
         if (conducteurRepository.existsByEmail(request.email())) {
-            throw new EmailAlreadyExistsException(
+            throw new AlreadyExistsException(
                     "Cette adresse email est déjà utilisée."
             );
         }
 
         if (conducteurRepository.existsByNumeroPermis(request.numeroPermis())) {
-            throw new NumeroPermisAlreadyExistsException(
+            throw new AlreadyExistsException(
                     "Ce numéro de permis est déjà utilisé."
             );
         }
@@ -67,7 +66,7 @@ public class ConducteurServiceImpl implements ConducteurService {
     public ConducteurResponseDTO getConducteur(Long id) {
 
         Conducteur conducteur = conducteurRepository.findById(id)
-            .orElseThrow(() ->new ConducteurNotExistsException("Conducteur introuvable avec l'identifiant : " + id));
+            .orElseThrow(() ->new ResourceNotFoundException("Conducteur introuvable avec l'identifiant : " + id));
 
         return conducteurMapper.toResponseDTO(conducteur);
     }
@@ -76,14 +75,14 @@ public class ConducteurServiceImpl implements ConducteurService {
     public ConducteurResponseDTO updateConducteur(Long id, ConducteurRequestDTO requestDTO) {
 
         Conducteur conducteur = conducteurRepository.findById(id)
-            .orElseThrow(() ->new ConducteurNotExistsException("Conducteur introuvable avec l'identifiant : " + id));
+            .orElseThrow(() ->new ResourceNotFoundException("Conducteur introuvable avec l'identifiant : " + id));
 
         if (conducteurRepository.existsByEmailAndIdNot(requestDTO.email(), id)) {
-            throw new EmailAlreadyExistsException("Cette adresse email est déjà utilisée.");
+            throw new AlreadyExistsException("Cette adresse email est déjà utilisée.");
         }
 
         if (conducteurRepository.existsByNumeroPermisAndIdNot(requestDTO.numeroPermis(), id)) {
-            throw new NumeroPermisAlreadyExistsException("Ce numéro de permis est déjà utilisé.");
+            throw new ResourceNotFoundException("Ce numéro de permis est déjà utilisé.");
         }
 
         conducteur.modifierInformations(
