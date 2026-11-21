@@ -27,6 +27,30 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("Message",ex.getMessage()));
     }
 
+    @ExceptionHandler(VehiculeAssocieATrajetException.class)
+    public ResponseEntity<ProblemDetail> handleVehiculeAssocieATrajet(
+            VehiculeAssocieATrajetException exception) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                exception.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ProblemDetail> handleIllegalArgument(
+            IllegalArgumentException exception) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                exception.getMessage()
+        );
+
+        return ResponseEntity.badRequest().body(problem);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException ex) {
 
@@ -42,15 +66,4 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(errors);
     }
 
-    @ExceptionHandler(VehiculeAssocieATrajetException.class)
-    public ResponseEntity<ProblemDetail> handleVehiculeAssocieATrajet(
-            VehiculeAssocieATrajetException exception) {
-
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-                HttpStatus.CONFLICT,
-                exception.getMessage()
-        );
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
-    }
 }
