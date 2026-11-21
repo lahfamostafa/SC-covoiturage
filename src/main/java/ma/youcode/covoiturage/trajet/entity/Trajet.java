@@ -1,14 +1,17 @@
 package ma.youcode.covoiturage.trajet.entity;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import lombok.*;
 import ma.youcode.covoiturage.conducteur.entity.Conducteur;
 import ma.youcode.covoiturage.enums.StatutTrajet;
-import ma.youcode.covoiturage.reservation.entity.Reservation;
 import ma.youcode.covoiturage.vehicule.entity.Vehicule;
 
 @Entity
@@ -44,32 +47,55 @@ public class Trajet {
 
     @OneToMany(mappedBy = "trajet", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("ordre ASC")
+    @Getter(AccessLevel.NONE)
     private List<PointArret> pointsArret = new ArrayList<>();
 
-    @OneToMany(mappedBy = "trajet")
-    private List<Reservation> reservations = new ArrayList<>();
-
-    @PrePersist
-    protected void onCreate() {
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
-        }
+    public Trajet(Conducteur conducteur, Vehicule vehicule, LocalDateTime dateDepart, Integer placesProposees) {
+        this.conducteur = conducteur;
+        this.vehicule = vehicule;
+        this.dateDepart = dateDepart;
+        this.placesProposees = placesProposees;
+        this.statut = StatutTrajet.PUBLIE;
+        this.createdAt = LocalDateTime.now();
     }
 
-    public void addPointArret(PointArret pointArret) {
-        if (pointArret == null) {
-            throw new IllegalArgumentException("Le point d'arrêt ne peut pas être null");
+    public List<PointArret> getPointsArret() {
+        return Collections.unmodifiableList(pointsArret);
+    }
+
+    public void ajouterPointArret(PointArret pointArret) {
+        if (pointArret.getTrajet() != null && pointArret.getTrajet() != this) {
+            throw new IllegalArgumentException("Ce point d'arrêt appartient déjà à un autre trajet");
         }
 
         if (!pointsArret.contains(pointArret)) {
+            pointArret.associerAuTrajet(this);
             pointsArret.add(pointArret);
-            pointArret.assignTrajet(this);
         }
     }
 
-    public void removePointArret(PointArret pointArret) {
+    public void retirerPointArret(PointArret pointArret) {
         if (pointsArret.remove(pointArret)) {
-            pointArret.removeTrajet();
+            pointArret.retirerDuTrajet();
         }
+    }
+
+    public void remplacerPointsArret(List<PointArret> nouveauxPoints) {
+        for (PointArret point : new ArrayList<>(pointsArret)) {
+            retirerPointArret(point);
+        }
+
+        for (PointArret point : nouveauxPoints) {
+            ajouterPointArret(point);
+        }
+    }
+
+    public void modifierInformations(LocalDateTime dateDepart, Integer placesProposees) {
+        this.dateDepart = dateDepart;
+        this.placesProposees = placesProposees;
+    }
+
+    public void changerStatut(StatutTrajet statut) {
+        this.statut = statut;
     }
 }
