@@ -1,4 +1,4 @@
-package ma.youcode.covoiturage.exception;
+package ma.youcode.covoiturage.commun.exception;
 
 public class AlreadyExistsException extends RuntimeException {
 

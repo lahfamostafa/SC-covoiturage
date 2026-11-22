@@ -1,4 +1,4 @@
-package ma.youcode.covoiturage.exception;
+package ma.youcode.covoiturage.commun.exception;
 
 import java.util.Map;
 
