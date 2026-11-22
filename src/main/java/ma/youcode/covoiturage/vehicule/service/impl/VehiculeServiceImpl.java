@@ -7,13 +7,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
-
+import ma.youcode.covoiturage.commun.exception.AlreadyExistsException;
+import ma.youcode.covoiturage.commun.exception.ResourceNotFoundException;
+import ma.youcode.covoiturage.commun.exception.VehiculeAssocieATrajetException;
+import ma.youcode.covoiturage.commun.exception.VehiculeConducteurMismatchException;
 import ma.youcode.covoiturage.conducteur.entity.Conducteur;
 import ma.youcode.covoiturage.conducteur.repository.ConducteurRepository;
-import ma.youcode.covoiturage.exception.ResourceNotFoundException;
-import ma.youcode.covoiturage.exception.VehiculeAssocieATrajetException;
-import ma.youcode.covoiturage.exception.AlreadyExistsException;
-import ma.youcode.covoiturage.exception.VehiculeConducteurMismatchException;
 import ma.youcode.covoiturage.trajet.repository.TrajetRepository;
 import ma.youcode.covoiturage.vehicule.dto.VehiculeRequestDTO;
 import ma.youcode.covoiturage.vehicule.dto.VehiculeResponseDTO;
