@@ -2,17 +2,20 @@ package ma.youcode.covoiturage.conducteur.service.impl;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import ma.youcode.covoiturage.commun.dto.PageResponseDTO;
+import ma.youcode.covoiturage.commun.exception.AlreadyExistsException;
+import ma.youcode.covoiturage.commun.exception.ResourceNotFoundException;
 import ma.youcode.covoiturage.conducteur.dto.ConducteurRequestDTO;
 import ma.youcode.covoiturage.conducteur.dto.ConducteurResponseDTO;
 import ma.youcode.covoiturage.conducteur.entity.Conducteur;
 import ma.youcode.covoiturage.conducteur.mapper.ConducteurMapper;
 import ma.youcode.covoiturage.conducteur.repository.ConducteurRepository;
 import ma.youcode.covoiturage.conducteur.service.ConducteurService;
-import ma.youcode.covoiturage.exception.AlreadyExistsException;
-import ma.youcode.covoiturage.exception.ResourceNotFoundException;
 
 @Service
 @Transactional
@@ -94,5 +97,12 @@ public class ConducteurServiceImpl implements ConducteurService {
         );
 
         return conducteurMapper.toResponseDTO(conducteur);
+    }
+
+    @Override
+    public PageResponseDTO<ConducteurResponseDTO> rechercherParNomOuEmail(String terme, Pageable pageable) {
+        Page<ConducteurResponseDTO> resultats = conducteurRepository.findByNameOrEmail(terme, pageable)
+                .map(conducteurMapper::toResponseDTO);
+        return PageResponseDTO.from(resultats);
     }
 }
