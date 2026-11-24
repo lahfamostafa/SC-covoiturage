@@ -53,17 +53,13 @@ public class VehiculeServiceImpl implements VehiculeService {
     @Override
     @Transactional(readOnly = true)
     public List<VehiculeResponseDTO> getVehicules() {
-
         return vehiculeRepository.findAll().stream().map(vehiculeMapper::toResponseDTO).toList();
     }
 
     @Override
     @Transactional(readOnly = true)
     public VehiculeResponseDTO getVehiculeById(Long id) {
-
-        Vehicule vehicule = vehiculeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Véhicule introuvable avec l'id : " + id));
-
+        Vehicule vehicule = vehiculeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Véhicule introuvable avec l'id : " + id));
         return vehiculeMapper.toResponseDTO(vehicule);
     }
 
@@ -82,11 +78,11 @@ public class VehiculeServiceImpl implements VehiculeService {
         }
 
         vehicule.modifierInformations(
-                request.marque(),
-                request.modele(),
-                request.immatriculation(),
-                request.couleur(),
-                request.capacite()
+            request.marque(),
+            request.modele(),
+            request.immatriculation(),
+            request.couleur(),
+            request.capacite()
         );
 
         return vehiculeMapper.toResponseDTO(vehicule);
@@ -97,10 +93,7 @@ public class VehiculeServiceImpl implements VehiculeService {
     public List<VehiculeResponseDTO> getVehiculesByConducteurId(Long conducteurId) {
 
         conducteurRepository.findById(conducteurId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Conducteur introuvable avec l'id : " + conducteurId
-                ));
-
+                .orElseThrow(() -> new ResourceNotFoundException("Conducteur introuvable avec l'id : " + conducteurId));
         return vehiculeRepository.findByConducteur_Id(conducteurId)
                 .stream()
                 .map(vehiculeMapper::toResponseDTO)
@@ -111,16 +104,12 @@ public class VehiculeServiceImpl implements VehiculeService {
     public void supprimerVehicule(Long id) {
 
         Vehicule vehicule = vehiculeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Véhicule introuvable avec l'id : " + id
-                ));
+                .orElseThrow(() -> new ResourceNotFoundException("Véhicule introuvable avec l'id : " + id));
 
         boolean estAssocieATrajet = trajetRepository.existsByVehicule_Id(id);
 
         if (estAssocieATrajet) {
-            throw new VehiculeAssocieATrajetException(
-                    "Impossible de supprimer ce véhicule : il est associé à un ou plusieurs trajets"
-            );
+            throw new VehiculeAssocieATrajetException("Impossible de supprimer ce véhicule : il est associé à un ou plusieurs trajets");
         }
 
         vehiculeRepository.delete(vehicule);

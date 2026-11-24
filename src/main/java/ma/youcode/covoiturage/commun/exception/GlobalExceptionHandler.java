@@ -3,7 +3,6 @@ package ma.youcode.covoiturage.commun.exception;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -28,36 +27,25 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(VehiculeAssocieATrajetException.class)
-    public ResponseEntity<ProblemDetail> handleVehiculeAssocieATrajet(
-            VehiculeAssocieATrajetException exception) {
-
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-                HttpStatus.CONFLICT,
-                exception.getMessage()
-        );
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
+    public ResponseEntity<Map<String, String>> handleVehiculeAssocieATrajet(VehiculeAssocieATrajetException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("Message",ex.getMessage()));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ProblemDetail> handleIllegalArgument(
-            IllegalArgumentException exception) {
+    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(Map.of("Message",ex.getMessage()));
+    }
 
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-                HttpStatus.BAD_REQUEST,
-                exception.getMessage()
-        );
-
-        return ResponseEntity.badRequest().body(problem);
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, String>> handleTrajetNonDisponible(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("Message",ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException ex) {
 
-        Map<String, String> errors = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .collect(
+        Map<String, String> errors = ex.getBindingResult().getFieldErrors()
+                .stream().collect(
                         java.util.stream.Collectors.toMap(
                                 error -> error.getField(),
                                 error -> error.getDefaultMessage(),
@@ -65,5 +53,4 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest().body(errors);
     }
-
 }

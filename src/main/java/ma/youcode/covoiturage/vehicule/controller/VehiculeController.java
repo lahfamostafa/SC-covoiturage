@@ -43,19 +43,14 @@ public class VehiculeController {
     }
 
     @GetMapping("/conducteur/{conducteurId}")
-    public ResponseEntity<List<VehiculeResponseDTO>> getVehiculesByConducteurId(
-            @PathVariable Long conducteurId) {
-
-        return ResponseEntity.ok(
-                vehiculeService.getVehiculesByConducteurId(conducteurId)
-        );
+    public ResponseEntity<List<VehiculeResponseDTO>> getVehiculesByConducteurId(@PathVariable Long conducteurId) {
+        return ResponseEntity.ok(vehiculeService.getVehiculesByConducteurId(conducteurId));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> supprimerVehicule(@PathVariable Long id) {
 
         vehiculeService.supprimerVehicule(id);
-
         return ResponseEntity.noContent().build();
     }
 }
