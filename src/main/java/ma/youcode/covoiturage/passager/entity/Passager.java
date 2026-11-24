@@ -32,21 +32,35 @@ public class Passager {
     @OneToMany(mappedBy = "passager")
     private List<Reservation> reservations = new ArrayList<>();
 
-    // Maintenir la relation bidirectionnelle
+    public Passager(String nom, String prenom, String email, String telephone) {
+        this.nom = nom;
+        this.prenom = prenom;
+        this.email = email;
+        this.telephone = telephone;
+    }
+
+    public void modifierInformations(String nom, String prenom, String email, String telephone) {
+        this.nom = nom;
+        this.prenom = prenom;
+        this.email = email;
+        this.telephone = telephone;
+    }
+
     public void addReservation(Reservation reservation) {
         if (reservation == null) {
             throw new IllegalArgumentException("La réservation ne peut pas être null");
         }
 
+        reservation.assignPassager(this);
+    }
+
+    public void addReservationReference(Reservation reservation) {
         if (!reservations.contains(reservation)) {
             reservations.add(reservation);
-            reservation.assignPassager(this);
         }
     }
 
-    public void removeReservation(Reservation reservation) {
-        if (reservations.remove(reservation)) {
-            reservation.removePassager();
-        }
+    public List<Reservation> getReservations() {
+        return List.copyOf(reservations);
     }
 }
