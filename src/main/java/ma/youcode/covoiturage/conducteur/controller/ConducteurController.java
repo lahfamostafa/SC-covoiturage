@@ -39,7 +39,6 @@ public class ConducteurController {
     public ResponseEntity<ConducteurResponseDTO> creerConducteur(@Valid @RequestBody ConducteurRequestDTO request) {
 
         ConducteurResponseDTO response = conducteurService.creerConducteur(request);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

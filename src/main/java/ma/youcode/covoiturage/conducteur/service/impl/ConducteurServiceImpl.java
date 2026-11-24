@@ -24,9 +24,7 @@ public class ConducteurServiceImpl implements ConducteurService {
     private final ConducteurRepository conducteurRepository;
     private final ConducteurMapper conducteurMapper;
 
-    public ConducteurServiceImpl(
-            ConducteurMapper conducteurMapper,
-            ConducteurRepository conducteurRepository) {
+    public ConducteurServiceImpl(ConducteurMapper conducteurMapper,ConducteurRepository conducteurRepository) {
 
         this.conducteurRepository = conducteurRepository;
         this.conducteurMapper = conducteurMapper;
@@ -37,24 +35,18 @@ public class ConducteurServiceImpl implements ConducteurService {
     public List<ConducteurResponseDTO> getConducteurs() {
 
         return conducteurRepository.findAll()
-                .stream()
-                .map(conducteurMapper::toResponseDTO)
-                .toList();
+                .stream().map(conducteurMapper::toResponseDTO).toList();
     }
 
     @Override
     public ConducteurResponseDTO creerConducteur(ConducteurRequestDTO request) {
 
         if (conducteurRepository.existsByEmail(request.email())) {
-            throw new AlreadyExistsException(
-                    "Cette adresse email est déjà utilisée."
-            );
+            throw new AlreadyExistsException("Cette adresse email est déjà utilisée.");
         }
 
         if (conducteurRepository.existsByNumeroPermis(request.numeroPermis())) {
-            throw new AlreadyExistsException(
-                    "Ce numéro de permis est déjà utilisé."
-            );
+            throw new AlreadyExistsException("Ce numéro de permis est déjà utilisé.");
         }
 
         Conducteur conducteur = conducteurMapper.toEntity(request);
