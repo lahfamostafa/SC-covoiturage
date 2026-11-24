@@ -1,23 +1,33 @@
 package ma.youcode.covoiturage.trajet.service.impl;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import ma.youcode.covoiturage.commun.dto.PageResponseDTO;
 import ma.youcode.covoiturage.commun.exception.AlreadyExistsException;
 import ma.youcode.covoiturage.commun.exception.ResourceNotFoundException;
 import ma.youcode.covoiturage.commun.exception.VehiculeConducteurMismatchException;
 import ma.youcode.covoiturage.conducteur.entity.Conducteur;
 import ma.youcode.covoiturage.conducteur.repository.ConducteurRepository;
+import ma.youcode.covoiturage.enums.StatutReservation;
 import ma.youcode.covoiturage.enums.StatutTrajet;
+import ma.youcode.covoiturage.reservation.repository.ReservationRepository;
 import ma.youcode.covoiturage.trajet.dto.PointArretRequestDTO;
+import ma.youcode.covoiturage.trajet.dto.TrajetDetailResponseDTO;
+import ma.youcode.covoiturage.trajet.dto.TrajetRechercheDTO;
 import ma.youcode.covoiturage.trajet.dto.TrajetRequestDTO;
 import ma.youcode.covoiturage.trajet.dto.TrajetResponseDTO;
 import ma.youcode.covoiturage.trajet.entity.PointArret;
@@ -37,17 +47,16 @@ public class TrajetServiceImpl implements TrajetService {
     private final ConducteurRepository conducteurRepository;
     private final VehiculeRepository vehiculeRepository;
     private final TrajetMapper trajetMapper;
+    private final ReservationRepository reservationRepository;
 
     @Override
     public TrajetResponseDTO creerTrajet(TrajetRequestDTO request) {
 
         Conducteur conducteur = conducteurRepository.findById(request.conducteurId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Conducteur introuvable avec l'id : " + request.conducteurId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Conducteur introuvable avec l'id : " + request.conducteurId()));
 
         Vehicule vehicule = vehiculeRepository.findById(request.vehiculeId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Véhicule introuvable avec l'id : " + request.vehiculeId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Véhicule introuvable avec l'id : " + request.vehiculeId()));
 
         verifierVehiculeConducteur(vehicule, conducteur);
         verifierCapaciteVehicule(vehicule, request.placesProposees());
@@ -81,9 +90,7 @@ public class TrajetServiceImpl implements TrajetService {
     @Transactional(readOnly = true)
     public TrajetResponseDTO getTrajetById(Long id) {
 
-        Trajet trajet = trajetRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Trajet introuvable avec l'id : " + id));
-
+        Trajet trajet = trajetRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Trajet introuvable avec l'id : " + id));
         return trajetMapper.toResponseDTO(trajet);
     }
 
@@ -91,23 +98,19 @@ public class TrajetServiceImpl implements TrajetService {
     @Transactional(readOnly = true)
     public List<TrajetResponseDTO> getTrajetsByConducteurId(Long conducteurId) {
 
-        conducteurRepository.findById(conducteurId)
-                .orElseThrow(() -> new ResourceNotFoundException("Conducteur introuvable avec l'id : " + conducteurId));
-
+        conducteurRepository.findById(conducteurId).orElseThrow(() -> new ResourceNotFoundException("Conducteur introuvable avec l'id : " + conducteurId));
         return trajetRepository.findByConducteur_Id(conducteurId).stream().map(trajetMapper::toResponseDTO).toList();
     }
 
     @Override
     public TrajetResponseDTO modifierTrajet(Long id, TrajetRequestDTO request) {
 
-        Trajet trajet = trajetRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Trajet introuvable avec l'id : " + id));
+        Trajet trajet = trajetRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Trajet introuvable avec l'id : " + id));
 
         // Le conducteur et le véhicule restent ceux définis à la création.
         if (!trajet.getConducteur().getId().equals(request.conducteurId())
                 || !trajet.getVehicule().getId().equals(request.vehiculeId())) {
-            throw new VehiculeConducteurMismatchException(
-                    "Le conducteur et le véhicule d'un trajet ne peuvent pas être modifiés");
+            throw new VehiculeConducteurMismatchException("Le conducteur et le véhicule d'un trajet ne peuvent pas être modifiés");
         }
 
         verifierCapaciteVehicule(trajet.getVehicule(), request.placesProposees());
@@ -118,11 +121,7 @@ public class TrajetServiceImpl implements TrajetService {
 
         List<PointArret> nouveauxPoints = request.pointsArret()
                 .stream()
-                .map(pointDTO -> new PointArret(
-                        pointDTO.ville(),
-                        pointDTO.ordre(),
-                        pointDTO.heurePassage(),
-                        pointDTO.prixDepuisDepart()))
+                .map(pointDTO -> new PointArret(pointDTO.ville(), pointDTO.ordre(), pointDTO.heurePassage(), pointDTO.prixDepuisDepart()))
                 .toList();
 
         trajet.remplacerPointsArret(nouveauxPoints);
@@ -133,9 +132,7 @@ public class TrajetServiceImpl implements TrajetService {
     @Override
     public void supprimerTrajet(Long id) {
 
-        Trajet trajet = trajetRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Trajet introuvable avec l'id : " + id));
-
+        Trajet trajet = trajetRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Trajet introuvable avec l'id : " + id));
         trajetRepository.delete(trajet);
     }
 
@@ -179,8 +176,7 @@ public class TrajetServiceImpl implements TrajetService {
             PointArretRequestDTO actuel = points.get(i);
 
             if (actuel.ordre() != i) {
-                throw new IllegalArgumentException(
-                        "Les ordres des points d'arrêt doivent être consécutifs et commencer à 0");
+                throw new IllegalArgumentException("Les ordres des points d'arrêt doivent être consécutifs et commencer à 0");
             }
 
             if (actuel.heurePassage().isBefore(dateDepart)) {
@@ -206,8 +202,59 @@ public class TrajetServiceImpl implements TrajetService {
             .existsByConducteur_IdAndDateDepartAndStatutNot(conducteurId, dateDepart, StatutTrajet.ANNULE);
 
         if (existe) {
-            throw new AlreadyExistsException(
-                    "Un trajet existe déjà pour ce conducteur à cette date.");
+            throw new AlreadyExistsException("Un trajet existe déjà pour ce conducteur à cette date.");
         }
+    }
+
+    // @Override
+    // public PageResponseDTO<TrajetResponseDTO> rechercherTrajets(String villeDepart, String villeArrivee, LocalDate date, Pageable pageable) {
+    //     LocalDateTime debutJour = date.atStartOfDay();
+    //     LocalDateTime finJour = date.plusDays(1).atStartOfDay();
+
+    //     Page<TrajetResponseDTO> resultats = trajetRepository.findTrajets(villeDepart.trim(), villeArrivee.trim(), debutJour, finJour, StatutTrajet.PUBLIE, pageable)
+    //         .map(trajetMapper::toResponseDTO);
+
+    //     return PageResponseDTO.from(resultats);
+    // }
+
+    @Override
+    public PageResponseDTO<TrajetRechercheDTO> rechercherTrajetsAvances(String villeDepart, String villeArrivee, LocalDate date, Integer nombrePlaces, BigDecimal prixMax, Pageable pageable) {
+
+        LocalDateTime debutJour = date != null ? date.atStartOfDay() : null;
+
+        LocalDateTime finJour = date != null ? date.plusDays(1).atStartOfDay() : null;
+
+        Pageable pagination = PageRequest.of(pageable.getPageNumber(),pageable.getPageSize(),Sort.by(Sort.Direction.ASC, "dateDepart"));
+
+        Page<TrajetRechercheDTO> resultats =
+            trajetRepository.rechercherTrajets(
+                villeDepart.trim(),
+                villeArrivee.trim(),
+                debutJour,
+                finJour,
+                nombrePlaces,
+                prixMax,
+                StatutTrajet.PUBLIE,
+                StatutReservation.CONFIRMEE,
+                pagination
+            );
+
+        return PageResponseDTO.from(resultats);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public TrajetDetailResponseDTO getTrajetDetails(Long id) {
+
+        Trajet trajet = trajetRepository.findWithPointsArretById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Trajet introuvable avec l'id : " + id));
+
+        Long placesReservees = reservationRepository.sumPlacesReservees(id,StatutReservation.CONFIRMEE);
+
+        Integer placesRestantes = trajet.getPlacesProposees() - placesReservees.intValue();
+
+        TrajetResponseDTO trajetDTO = trajetMapper.toResponseDTO(trajet);
+
+        return new TrajetDetailResponseDTO(trajetDTO, placesRestantes);
     }
 }

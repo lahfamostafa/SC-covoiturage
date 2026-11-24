@@ -95,7 +95,16 @@ public class Trajet {
         this.placesProposees = placesProposees;
     }
 
-    public void changerStatut(StatutTrajet statut) {
-        this.statut = statut;
+    public void changerStatut(StatutTrajet nouveauStatut) {
+
+        if (nouveauStatut == null) {
+            throw new IllegalArgumentException("Le statut est obligatoire");
+        }
+
+        if (this.statut == StatutTrajet.ANNULE || this.statut == StatutTrajet.TERMINE) {
+            throw new IllegalStateException("Impossible de modifier le statut d'un trajet annulé ou terminé");
+        }
+
+        this.statut = nouveauStatut;
     }
 }
