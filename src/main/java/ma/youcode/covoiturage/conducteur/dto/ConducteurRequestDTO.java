@@ -17,10 +17,7 @@ public record ConducteurRequestDTO(
     String email,
 
     @NotBlank(message = "Le téléphone est obligatoire")
-    @Pattern(
-        regexp = "^[0-9]{10}$",
-        message = "Le téléphone doit contenir exactement 10 chiffres"
-    )
+    @Pattern(regexp = "^[0-9]{10}$", message = "Le téléphone doit contenir exactement 10 chiffres")
     String telephone,
 
     @NotBlank(message = "Le numéro de permis est obligatoire")
